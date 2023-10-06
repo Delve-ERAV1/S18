@@ -145,26 +145,89 @@ Epoch 7:   3%|▎         | 2/58 [00:05<02:40,  2.87s/it, v_num=0, train_loss_st
 ![image](https://github.com/Delve-ERAV1/S18/assets/11761529/ccab60c2-8706-442f-8d45-351d18f30269)
 
 
-## Conditional Variational Autoencoder (CVAE) Design
+## Conditional Variational Autoencoder (VAE) for MNIST & CIFAR10
 
-The second part involves designing a Conditional VAE with the following specifications:
+## Project Description
 
-- The CVAE takes in two inputs:
-  1. An image (either from the MNIST and CIFAR10 dataset).
-  2. The label of the image (one-hot encoded vector sent through an embedding layer).
+This project designs a variation of a Variational Autoencoder (VAE) with unique characteristics:
 
-- The CVAE is trained as a typical VAE would be.
+- The model accepts two distinct inputs:
+  1. An image (either from the MNIST or CIFAR10 dataset).
+  2. The label of the image (one-hot encoded and passed through an embedding layer).
+  
+- The VAE is trained conventionally. During evaluation, the model is provided with an image and a potentially mismatched label. The objective is to observe the VAE's generated output when presented with these mismatched image-label pairs.
 
-- For testing, an image is randomly sent to the CVAE with an incorrect label. This is done 25 times, and the outputs are visualized.
+- The evaluation produces 25 generated images (based on 25 different input images with mismatched labels), which are stacked into a single composite image for visualization.
 
-##### MNIST Handwritten
-![image](https://github.com/Delve-ERAV1/S18/assets/11761529/324f3398-fc6b-40d2-81c6-3ae930146209)
-##### Incorrect Label
-![image](https://github.com/Delve-ERAV1/S18/assets/11761529/03cc6f48-f3ca-49a3-ab8c-2ed7157c1eef)
+## Highlights
 
-##### CIFAR10
-![image](https://github.com/Delve-ERAV1/S18/assets/11761529/e58eb960-f2d4-4602-8b3a-39984d2689dd)
+- **Conditional VAE**: The VAE is conditioned on a label input, allowing the generated image to incorporate features from both the input image and the provided label, even if they mismatch.
+
+- **Pretrained CNNs** to provide : 
+  - MNIST: Achieved a validation accuracy of 99.1%.
+  - CIFAR10: Achieved a validation accuracy of 90.20%.
+
+- **Label Projection**: In the decoder, the label undergoes conditional batch normalization on the latent code. The label is also spatially projected and concatenated at various layers.
+
+- **Loss Functions**:
+  - **Label Loss**: Computed using binary cross-entropy between the smoothed label (0.1) and the target, considering all labels.
+  - **Total Loss**: A combination of label loss, KL divergence, and Gaussian likelihood.
+
+## Model Architecture
+
+The architecture comprises:
+
+1. **Encoder**: Transforms the input image into a latent representation.
+2. **Decoder**: Processes the latent representation and the label to produce the output image. The label undergoes conditional batch normalization and is spatially projected and concatenated at different layers.
+3. **Pretrained CNN**: Employed for feature extraction from the input images.
+
+## Training Details
+
+- **Datasets**: MNIST and CIFAR10
+- **Loss Functions**: Binary Cross-Entropy (label loss), KL divergence, and Gaussian likelihood (reconstruction loss).
+- **Optimization Details**: [Expand on optimizer, learning rate, etc.]
+
+## Results
+
+Upon feeding the VAE with mismatched image-label pairs:
+
+### MNIST
+
+```
+  | Name       | Type        | Params
+-------------------------------------------
+0 | encoder    | Encoder     | 154 K 
+1 | decoder    | Decoder     | 774 K 
+2 | net        | ModifiedNet | 593 K 
+3 | label_loss | BCELoss     | 0     
+-------------------------------------------
+929 K     Trainable params
+593 K     Non-trainable params
+1.5 M     Total params
+6.090     Total estimated model params size (MB)
+```
+![image](https://github.com/Delve-ERAV1/S18/assets/11761529/7400ee50-cfb6-4580-bc35-19c765738415)
 
 
-### Results
-The results for the MNIST and CIFAR10 datasets are provided below. Additionally, the 25 outputs for each dataset are stacked into a single image and labeled appropriately.
+
+### CIFAR
+```
+  | Name                | Type               | Params
+-----------------------------------------------------------
+0 | latent_augmentation | LatentAugmentation | 0     
+1 | encoder             | Encoder            | 4.6 M 
+2 | decoder             | Decoder            | 8.5 M 
+3 | net                 | CIFARNet           | 2.0 M 
+4 | label_loss          | BCELoss            | 0     
+-----------------------------------------------------------
+15.1 M    Trainable params
+0         Non-trainable params
+15.1 M    Total params
+60.217    Total estimated model params size (MB)
+```
+
+![image](https://github.com/Delve-ERAV1/S18/assets/11761529/b047fc54-0172-4a0d-acf4-31b42bb8e426)
+
+
+
+
